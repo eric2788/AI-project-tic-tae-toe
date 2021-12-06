@@ -7,9 +7,9 @@ class MainMenu(UIView):
 
     def render(self) -> list:
         return [
-                [sg.Text('hwidahwidhawihdiaw')],
+                [sg.Text('Do you want to play Tic Tae Toe with AI ?')],
                 [sg.Button('Play', key='play_button')],
-                [sg.Button('Play Histories', key='histories_button')]
+                [sg.Button('Histories', key='histories_button')]
         ]
 
     def listeners(self) -> dict:

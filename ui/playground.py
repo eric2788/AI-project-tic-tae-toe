@@ -1,5 +1,7 @@
 import PySimpleGUI as sg
+from ai.strategy import random_select
 from ui.api import UIView
+import time
 
 
 MAX_ROWS = 3
@@ -15,9 +17,14 @@ class PlayGround(UIView):
 
 
         self.possible_wins_line = [
+            # vertical
             ((0, 0), (0, 1), (0, 2)),
             ((1, 0), (1, 1), (1, 2)),
-            ((2, 0), (2, 1), (2, 2))
+            ((2, 0), (2, 1), (2, 2)),
+            # horizontal
+            ((0, 0), (1, 0), (2, 0)),
+            ((0, 1), (1, 1), (2, 1)),
+            ((0, 2), (1, 2), (2, 2))
         ]
 
         self.possible_wins_incline = [
@@ -30,7 +37,6 @@ class PlayGround(UIView):
 
             [ self.indicator ],
 
-
         ] + self.grids
 
 
@@ -38,12 +44,13 @@ class PlayGround(UIView):
     def on_event(self, event, values) -> bool:
         print(f'user clicked {event}')
         _, x, y = event
+
         if self.grids[x][y].GetText() != ' ':
             return
-        self.player_round = not self.player_round
-        self.indicator.update(value=f"Round: {'AI Turn' if not self.player_round else 'Your Turn'}")
-        self.grids[x][y].update(text='X' if not self.player_round else 'O')
         
+        self.grids[x][y].update(text='X' if not self.player_round else 'O')
+
+
         possible_wins = []
 
         for winnable in self.possible_wins_line:
@@ -65,8 +72,28 @@ class PlayGround(UIView):
             sg.Popup('Game Draw', title='Game Over')
             return True
 
+        self.player_round = not self.player_round
+        self.indicator.update(value=f"Round: {'AI Turn' if not self.player_round else 'Your Turn'}")
+
+        if self.player_round == False:
+            self.AI_turn()
+            return
         
         return False
+
+
+    def AI_turn(self):
+        selectable = []
+
+        for row in self.grids:
+            for btn in row:
+                if btn.GetText() == ' ':
+                    selectable.append(btn)
+        
+        if len(selectable) == 0:
+            return
+        button = random_select(selectable)
+        button.click()
 
 
     def is_win(self, possible_wins) -> bool:
@@ -75,8 +102,10 @@ class PlayGround(UIView):
             (ax, ay) = a
             (bx, by) = b
             (cx, cy) = c
+
             if self.grids[ax][ay].GetText() == self.grids[bx][by].GetText() == self.grids[cx][cy].GetText():
                 return True
+
         return False
 
     def is_over(self) -> bool:
