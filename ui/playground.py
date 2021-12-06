@@ -1,5 +1,5 @@
 import PySimpleGUI as sg
-from ai.strategy import random_select
+import ai
 from ui.api import UIView
 import time
 
@@ -92,7 +92,7 @@ class PlayGround(UIView):
         
         if len(selectable) == 0:
             return
-        button = random_select(selectable)
+        button = ai.random_select(selectable)
         button.click()
 
 
