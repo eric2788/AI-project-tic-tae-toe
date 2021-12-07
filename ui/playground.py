@@ -1,3 +1,4 @@
+from typing import List
 import PySimpleGUI as sg
 import ai
 from ui.api import UIView
@@ -50,19 +51,7 @@ class PlayGround(UIView):
         
         self.grids[x][y].update(text='X' if not self.player_round else 'O')
 
-
-        possible_wins = []
-
-        for winnable in self.possible_wins_line:
-            if (x, y) in winnable:
-                possible_wins.append(winnable)
-
-        for winnable in self.possible_wins_incline:
-            if (x, y) in winnable:
-                possible_wins.append(winnable)
-
-
-        win = self.is_win(possible_wins)
+        win = self.is_win(x, y)
 
         if win:
             sg.Popup(f'{"You" if self.player_round else "AI"} Win', title='Game Over')
@@ -92,11 +81,33 @@ class PlayGround(UIView):
         
         if len(selectable) == 0:
             return
-        button = ai.random_select(selectable)
+        button = ai.min_max(self.possible_moves(), self.is_win, self.is_over)
         button.click()
 
+    def possible_moves(self) -> List[sg.Button]:
+        selectable = []
 
-    def is_win(self, possible_wins) -> bool:
+        for row in self.grids:
+            for btn in row:
+                if btn.GetText() == ' ':
+                    selectable.append(btn)
+        return selectable
+
+
+    def is_win(self, x, y) -> bool:
+        possible_wins = []
+
+        for winnable in self.possible_wins_line:
+            if (x, y) in winnable:
+                possible_wins.append(winnable)
+
+        for winnable in self.possible_wins_incline:
+            if (x, y) in winnable:
+                possible_wins.append(winnable)
+
+        if not possible_wins:
+            return False
+            
         #print(possible_wins)
         for (a, b, c) in possible_wins:
             (ax, ay) = a
