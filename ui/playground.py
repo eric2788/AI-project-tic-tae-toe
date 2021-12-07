@@ -2,7 +2,7 @@ from typing import List
 import PySimpleGUI as sg
 import ai
 from ui.api import UIView
-import time
+import threading
 
 
 MAX_ROWS = 3
@@ -48,13 +48,24 @@ class PlayGround(UIView):
 
         if self.grids[x][y].GetText() != ' ':
             return
+
+        is_end = self.handle_click(x, y, 'O' if self.player_round else 'X')
+
+        if is_end:
+            return is_end
+
+        if self.player_round == False:
+            self.AI_turn()
         
-        self.grids[x][y].update(text='X' if not self.player_round else 'O')
+        return False
 
-        win = self.is_win(x, y)
+    def handle_click(self, x, y, mark) -> bool:
+        self.grids[x][y].update(text=mark)
 
-        if win:
-            sg.Popup(f'{"You" if self.player_round else "AI"} Win', title='Game Over')
+        winner = self.get_winner(x, y)
+
+        if winner:
+            sg.Popup(f"{'You' if winner == 'O' else 'AI'} won", title='Game Over')
             return True
 
         if self.is_over():
@@ -64,25 +75,14 @@ class PlayGround(UIView):
         self.player_round = not self.player_round
         self.indicator.update(value=f"Round: {'AI Turn' if not self.player_round else 'Your Turn'}")
 
-        if self.player_round == False:
-            self.AI_turn()
-            return
-        
         return False
 
 
     def AI_turn(self):
-        selectable = []
-
-        for row in self.grids:
-            for btn in row:
-                if btn.GetText() == ' ':
-                    selectable.append(btn)
+        self.indicator.update(value='Round: AI Turn (thinking...)')
+        (x, y) = ai.min_max(self.grids)
+        return self.grids[x][y].Click()
         
-        if len(selectable) == 0:
-            return
-        button = ai.min_max(self.possible_moves(), self.is_win, self.is_over)
-        button.click()
 
     def possible_moves(self) -> List[sg.Button]:
         selectable = []
@@ -94,7 +94,7 @@ class PlayGround(UIView):
         return selectable
 
 
-    def is_win(self, x, y) -> bool:
+    def get_winner(self, x, y) -> str:
         possible_wins = []
 
         for winnable in self.possible_wins_line:
@@ -115,9 +115,9 @@ class PlayGround(UIView):
             (cx, cy) = c
 
             if self.grids[ax][ay].GetText() == self.grids[bx][by].GetText() == self.grids[cx][cy].GetText():
-                return True
+                return self.grids[ax][ay].GetText()
 
-        return False
+        return None
 
     def is_over(self) -> bool:
         for row in self.grids:

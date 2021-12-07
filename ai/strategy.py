@@ -1,3 +1,4 @@
+import math
 import random
 from typing import List
 import PySimpleGUI as sg
@@ -5,6 +6,7 @@ import PySimpleGUI as sg
 
 def random_select(selectable) -> sg.Button:
     return random.choice(selectable)
+
 
 def to_map(grids: List[List[sg.Button]]) -> dict:
     grid_map = {}
@@ -16,59 +18,54 @@ def to_map(grids: List[List[sg.Button]]) -> dict:
 
 # min max strategy
 
+
 def min_max(grids):
 
     grid_map = to_map(grids)
 
-    scores = {}
+    max_score, max_pos = -math.inf, None
 
     for pos in possible_moves(grid_map):
-        scores[pos] = min_max_algorithm(True)
-
-    max_score, max_button = -4, None
-
-    for button, score in scores.items():
-        print(f'{button.Key}: {score}')
+        grid_map[pos] = 'X'
+        score = min_max_algorithm(False, grid_map)
+        grid_map[pos] = ' '
         if score > max_score:
-            max_score, max_button = score, button
+            max_score, max_pos = score, pos
 
-    return max_button
-
-    
-
+    return max_pos
 
 
 def min_max_algorithm(
-        maxer: bool, 
-        grid_map: dict
-    ) -> int:
-    
-    _, x, y = button.Key
-    if not seletable:
-        if is_over():
-            return 0
-        return 1 if is_win(x, y) else -1
-       
+    maxer: bool,
+    grid_map: dict
+) -> int:
+
+    winner = get_winner(grid_map)
+    moves = possible_moves(grid_map)
+    if winner:
+        return 1 if winner == 'X' else -1
+    elif not moves:
+        return 0
 
     scores = []
 
-    for move in seletable:
-        new_seletable = list(filter(lambda m: m != move, seletable))
-        move.update(text='X' if maxer else 'O')
-        scores.append(min_max_algorithm(not maxer, new_seletable, is_win, is_over, move))
-        move.update(text=' ') # revert
+    for move in moves:
+        grid_map[move] = 'X' if maxer else 'O'
+        scores.append(min_max_algorithm(not maxer, grid_map))
+        grid_map[move] = ' '
 
     if maxer:
         return max(scores)
     else:
         return min(scores)
-    
+
 # alpha beta strategy (with pruning)
 
 def alpha_beta(seletable) -> sg.Button:
     pass
 
 # simulate
+
 
 def possible_moves(grid_map):
     possible_move = []
@@ -78,9 +75,37 @@ def possible_moves(grid_map):
 
     return possible_move
 
-def is_winner(grid_map) -> bool:
-    pass
+
+def get_winner(grid_map) -> str:
+    possible_wins = [
+        # vertical
+        ((0, 0), (0, 1), (0, 2)),
+        ((1, 0), (1, 1), (1, 2)),
+        ((2, 0), (2, 1), (2, 2)),
+        # horizontal
+        ((0, 0), (1, 0), (2, 0)),
+        ((0, 1), (1, 1), (2, 1)),
+        ((0, 2), (1, 2), (2, 2)),
+        # incline
+        ((0, 0), (1, 1), (2, 2)),
+        ((0, 2), (1, 1), (2, 0))
+    ]
+    for (a, b, c) in possible_wins:
+            (ax, ay) = a
+            (bx, by) = b
+            (cx, cy) = c
+
+            if grid_map[(ax, ay)] == grid_map[(bx, by)] == grid_map[(cx,cy)] == 'X':
+                return 'X'
+
+            if grid_map[(ax, ay)] == grid_map[(bx, by)] == grid_map[(cx,cy)] == 'O':
+                return 'O'
+
+    return None
+
 
 def is_draw(grid_map) -> bool:
-    pass
-
+    for v in grid_map.values():
+        if v == ' ':
+            return False
+    return True
