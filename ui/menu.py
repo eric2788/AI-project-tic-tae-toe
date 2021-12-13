@@ -9,7 +9,7 @@ class MainMenu(UIView):
         return [
                 [sg.Text('Do you want to play Tic Tae Toe with AI ?')],
                 [sg.Button('Play', key='play_button')],
-                [sg.Button('Histories', key='histories_button')]
+                [sg.Button('Played Histories', key='histories_button')]
         ]
 
     def listeners(self) -> dict:
@@ -19,11 +19,10 @@ class MainMenu(UIView):
         }
 
     def on_click_play(self, values):
-        print('user clicked play: ', values)
         self.switch_page('play')
 
     def on_click_history(self, values):
-        print('user clicked histories', values)
+        self.switch_page('histories')
 
 
 

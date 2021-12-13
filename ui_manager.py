@@ -16,9 +16,10 @@ def add_gui(key: str, ui: UIView):
     ui.switch_page = switch_page
 
     gui_map[key] = {
-        'layout': ui.render(),
+        'layout': ui.render,
         'listeners': ui.listeners(),
-        'event_handle': ui.on_event
+        'event_handle': ui.on_event,
+        'on_mount': ui.on_mount
     }
 
 
@@ -40,6 +41,16 @@ def run(thread=True):
         Thread(target=run_until_close).start()
     else:
         run_until_close()
+
+
+def create_column(layout, key, visible):
+    return sg.Column(
+            layout=layout, 
+            key=key, 
+            visible=visible, 
+            element_justification=CENTER, 
+            justification=CENTER,
+            pad=(5, 5))
     
 def run_until_close():
 
@@ -48,13 +59,7 @@ def run_until_close():
     layout = []
     for key, ui in gui_map.items():
 
-        column = sg.Column(
-            layout=ui['layout'], 
-            key=key, 
-            visible=key == 'main', 
-            element_justification=CENTER, 
-            justification=CENTER,
-            pad=(5, 5))
+        column = create_column(ui['layout'](), key, key == 'main')
         layout.append([column])
 
     window = sg.Window(TITLE, layout, finalize=True, size=(500, 500))
@@ -100,6 +105,6 @@ def switch_page(key: str):
 
     window[key].unhide_row()
     window[key].update(visible=True)
+    gui_map[key]['on_mount']()
+
     current_page = key
-
-

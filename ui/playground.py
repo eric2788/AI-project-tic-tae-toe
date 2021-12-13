@@ -1,8 +1,9 @@
 from typing import List
 import PySimpleGUI as sg
 import ai
+from history_manager import add_record
 from ui.api import UIView
-import threading
+import time
 
 
 MAX_ROWS = 3
@@ -33,6 +34,16 @@ class PlayGround(UIView):
             ((0, 2), (1, 1), (2, 0))
         ]
 
+
+    def on_mount(self):
+        # reset
+        self.player_round = True
+        self.indicator.update(value='Round: Your Turn')
+        for row in self.grids:
+            for grid in row:
+                grid.update(text=' ')
+
+
     def render(self) -> list:
         return [
 
@@ -52,7 +63,8 @@ class PlayGround(UIView):
         is_end = self.handle_click(x, y, 'O' if self.player_round else 'X')
 
         if is_end:
-            return is_end
+            self.switch_page('main')
+            return False
 
         if self.player_round == False:
             self.AI_turn()
@@ -65,11 +77,15 @@ class PlayGround(UIView):
         winner = self.get_winner(x, y)
 
         if winner:
-            sg.Popup(f"{'You' if winner == 'O' else 'AI'} won", title='Game Over')
+            result = f"{'You' if winner == 'O' else 'AI'} won"
+            sg.Popup(result, title='Game Over')
+            add_record(result)
             return True
 
         if self.is_over():
-            sg.Popup('Game Draw', title='Game Over')
+            result = 'Game Draw'
+            sg.Popup(result, title='Game Over')
+            add_record(result)
             return True
 
         self.player_round = not self.player_round

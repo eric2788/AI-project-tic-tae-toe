@@ -9,5 +9,6 @@ if __name__ == '__main__':
 
     ui_manager.add_gui('main', ui.MainMenu)
     ui_manager.add_gui('play', ui.PlayGround)
+    ui_manager.add_gui('histories', ui.HistoriesList)
 
     ui_manager.run()
