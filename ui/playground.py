@@ -96,7 +96,7 @@ class PlayGround(UIView):
 
     def AI_turn(self):
         self.indicator.update(value='Round: AI Turn (thinking...)')
-        (x, y) = ai.min_max(self.grids)
+        (x, y) = ai.alpha_beta(self.grids)
         return self.grids[x][y].Click()
         
 

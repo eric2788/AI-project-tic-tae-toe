@@ -2,6 +2,7 @@ import math
 import random
 from typing import List
 import PySimpleGUI as sg
+from PySimpleGUI.PySimpleGUI import main_get_debug_data
 
 
 def random_select(selectable) -> sg.Button:
@@ -61,8 +62,72 @@ def min_max_algorithm(
 
 # alpha beta strategy (with pruning)
 
-def alpha_beta(seletable) -> sg.Button:
-    pass
+def alpha_beta(grids):
+    grid_map = to_map(grids)
+
+    max_score, max_pos = -math.inf, None
+
+    for pos in possible_moves(grid_map):
+        grid_map[pos] = 'X'
+        score = alpha_beta_min_max_alogithm(0, False, grid_map)
+        grid_map[pos] = ' '
+        if score > max_score:
+            max_score, max_pos = score, pos
+
+    return max_pos
+
+
+def alpha_beta_min_max_alogithm(
+        depth: int,
+        maximizer: bool,
+        grid_map: dict,
+        alpha: int = -math.inf,
+        beta: int = math.inf,
+        MIN=-math.inf,
+        MAX=math.inf
+) -> int:
+
+    winner = get_winner(grid_map)
+    moves = possible_moves(grid_map)
+
+    if winner:
+        return 1 if winner == 'X' else -1
+    elif not moves:
+        return 0
+
+    if maximizer:
+        best = MIN
+
+        for move in moves:
+
+            grid_map[move] = 'X'
+            value = alpha_beta_min_max_alogithm(depth + 1, False, grid_map, alpha, beta)
+            grid_map[move] = ' '
+
+            best = max(best, value)
+            alpha = max(alpha, best)
+
+            if beta <= alpha:
+                break
+
+        return best
+
+    else:
+        best = MAX
+
+        for move in moves:
+
+            grid_map[move] = 'O'
+            value = alpha_beta_min_max_alogithm(depth + 1, True, grid_map, alpha, beta)
+            grid_map[move] = ' '
+
+            best = min(best, value)
+            beta = min(beta, best)
+
+            if beta <= alpha:
+                break
+
+        return best
 
 # simulate
 
